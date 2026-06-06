@@ -39,7 +39,8 @@ import urllib.parse
 import urllib.request
 from collections import Counter
 
-USER_AGENT = "iptv-m3u-validator/1.0 (+https://streamreviewhq.com/methodology)"
+# USER_AGENT = "iptv-m3u-validator/1.0 (+https://streamreviewhq.com/methodology)"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
 
 
 def fetch_playlist(url: str, timeout: int = 15) -> str:
