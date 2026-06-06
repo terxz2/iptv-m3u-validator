@@ -22,8 +22,38 @@ jobs:
   #    - name: Run --help (smoke)
   #      run: |
   #        python iptv_m3u_validator.py --help || true
-      - name: Validate playlist
+  #    - name: Validate playlist
+  #      env:
+  #         PLAYLIST_URL: ${{ secrets.PLAYLIST_URL }}
+  #      run: |
+  #         python iptv_m3u_validator.py "$PLAYLIST_URL"
+      - name: Run validator silently
         env:
-           PLAYLIST_URL: ${{ secrets.PLAYLIST_URL }}
+          PLAYLIST_URL: ${{ secrets.PLAYLIST_URL }}
         run: |
-           python iptv_m3u_validator.py "$PLAYLIST_URL"
+          OUTPUT=$(python iptv_m3u_validator.py "$PLAYLIST_URL" 2>/dev/null || true)
+          echo "$OUTPUT" > result.json
+
+      - name: Extract offline links
+        id: extract
+        run: |
+          jq -r '.results[] | select(.status=="broken") | .url' result.json > offline.txt
+          echo "list<<EOF" >> $GITHUB_OUTPUT
+          cat offline.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Send email if offline links exist
+        if: ${{ hashFiles('offline.txt') != '' }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PASS }}
+          subject: "⚠️ Link offline rilevati"
+          to: ${{ secrets.SMTP_USER }}
+          from: "GitHub Actions <${{ secrets.SMTP_USER }}>"
+          body: |
+            Sono stati rilevati link offline:
+
+            ${{ steps.extract.outputs.list }}
