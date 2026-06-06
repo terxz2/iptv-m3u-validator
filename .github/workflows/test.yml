@@ -19,6 +19,11 @@ jobs:
       - name: Compile-check the script
         run: |
           python -m py_compile iptv_m3u_validator.py
-      - name: Run --help (smoke)
+  #    - name: Run --help (smoke)
+  #      run: |
+  #        python iptv_m3u_validator.py --help || true
+      - name: Validate playlist
+        env:
+           PLAYLIST_URL: ${{ secrets.PLAYLIST_URL }}
         run: |
-          python iptv_m3u_validator.py --help || true
+           python iptv_m3u_validator.py "$PLAYLIST_URL"
